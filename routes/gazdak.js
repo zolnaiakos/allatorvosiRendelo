@@ -45,6 +45,9 @@ router.get("/:id",async(req,res)=>{
         })
     })
 
+
+    //hibakezelés kell
+
     
     res.json(gazdak);
 })
