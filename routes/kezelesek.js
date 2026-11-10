@@ -5,8 +5,37 @@ import db from "../data/db.js";
 const router = Router();
 
 router.get('/', async (req, res) =>{
-    let {tol, ig, }  = req.query;
+    const { tol, ig } = req.query;
 
+
+    //hibakezeléshez AI segítségét kértem
+    if (tol) {
+        const [ev, honap, nap] = tol.split("-").map(Number);
+        const d = new Date(Date.UTC(ev, honap - 1, nap));
+
+        if (
+            !/^\d{4}-\d{2}-\d{2}$/.test(tol) ||
+            d.getUTCFullYear() !== ev ||
+            d.getUTCMonth() !== honap - 1 ||
+            d.getUTCDate() !== nap
+        ) {
+            return res.status(400).json({ error: "Hibás kezdődátum" });
+        }
+    }
+
+    if (ig) {
+        const [ev, honap, nap] = ig.split("-").map(Number);
+        const d = new Date(Date.UTC(ev, honap - 1, nap));
+
+        if (
+            !/^\d{4}-\d{2}-\d{2}$/.test(ig) ||
+            d.getUTCFullYear() !== ev ||
+            d.getUTCMonth() !== honap - 1 ||
+            d.getUTCDate() !== nap
+        ) {
+            return res.status(400).json({ error: "Hibás záródátum" });
+        }
+    }
     const faj = req.query.faj;
 
     let sql = 'SELECT k.id, DATE_FORMAT(k.datum, "%Y-%m-%d") AS datum , a.nev AS allat , a.faj, g.nev AS gazda, k.leiras, k.dij FROM kezelesek k LEFT JOIN allatok a  ON k.allat_id = a.id LEFT JOIN gazdak g ON a.gazda_id = g.id ORDER BY k.datum ASC'
@@ -33,7 +62,7 @@ router.get('/', async (req, res) =>{
         feltetel.push('k.datum <= ?');
     }
 
-    //hibakezelés kell
+    
     
     
 
