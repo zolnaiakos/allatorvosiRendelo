@@ -22,11 +22,24 @@ router.get("/", async(req,res)=>{
 router.get("/:id",async(req,res)=>{
     const id = req.params.id;
 
+    if (!Number.isInteger(Number(id)) || Number(id) <= 0) {
+        return res.status(400).json({
+            error: "Hibás gazdaazonosító"
+        });
+    }
+
     let sql = 'SELECT g.id AS gazdaId, g.nev AS gazdaNev, g.telefon, g.varos, a.id AS allatId, a.nev AS allatNev, a.faj, DATE_FORMAT(a.szuletes, "%Y-%m-%d") AS szuletes FROM gazdak g LEFT JOIN allatok a on a.gazda_id = g.id WHERE g.id = ? ';
 
 
     const [eredmeny] = await pool.query(sql,[id]);
 
+
+      if (eredmeny.length === 0) {
+        return res.status(404).json({
+            error: "Nem létezik ilyen gazda"
+        });
+    }
+    
 
     const gazdak = {
         id : eredmeny[0].gazdaId,
@@ -37,16 +50,15 @@ router.get("/:id",async(req,res)=>{
     }
 
     eredmeny.forEach(allat=>{
-        gazdak.allatok.push({
-            id : allat.allatId,
-            nev : allat.allatNev,
-            faj : allat.faj,
-            szuletes : allat.szuletes
-        })
-    })
-
-
-    //hibakezelés kell
+       if (allat.allatId !== null) {
+            gazdak.allatok.push({
+                id: allat.allatId,
+                nev: allat.allatNev,
+                faj: allat.faj,
+                szuletes: allat.szuletes
+            });
+        }
+    });
 
     
     res.json(gazdak);
